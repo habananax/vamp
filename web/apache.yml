@@ -1,0 +1,35 @@
+---
+- hosts: all
+  become: true
+  tasks:
+        - name: actualizando
+          apt: update_cache=yes
+        - name: instalando apache
+          apt: name=apache2 state=present
+        - name: Añadir sitio virtual
+          template:
+           src=virtualhost.j2
+           dest=/etc/apache2/sites-available/virtualhost.conf
+        - name: Link sitio virtual
+          file:
+           src=/etc/apache2/sites-available/virtualhost.conf
+           dest=/etc/apache2/sites-enabled/virtualhost.conf
+           state=link
+        - name: Creando directorio del virtualhost
+          file: path=/var/www/html/sitiovirtual state=directory
+        - name: Creando Index
+          template:
+           src=index.html.j2
+           dest=/var/www/html/sitiovirtual/index.html
+           owner=root
+        - name: Cambiandole los permisos al index.html
+          shell: chmod 755 /var/www/html/sitiovirtual/index.html
+        - name: Creando Index-php
+          template:
+           src=index.php.j2
+           dest=/var/www/html/sitiovirtual/index.php
+           owner=root
+        - name: Cambiandole los permisos al index.php
+          shell: chmod 755 /var/www/html/sitiovirtual/index.php
+        - name: Restart Apache
+          service: name=apache2 state=restarted
